@@ -177,6 +177,8 @@ source venv/bin/activate
 
 # 3. 安裝套件（requirements.txt 尚未整理，先手動安裝）
 pip install django djangorestframework
+pip install -r requirements.txt
+cp .env.example .env      # 然後編輯 .env 填入自己的金鑰
 
 # 4. 建立資料表
 python manage.py migrate
@@ -184,6 +186,7 @@ python manage.py migrate
 # 5. 啟動開發伺服器（預設 Port 8000）
 python manage.py runserver
 ```
+
 
 啟動後可存取 `http://127.0.0.1:8000/`。
 若需後台：執行 `python manage.py createsuperuser` 後前往 `/admin/`。

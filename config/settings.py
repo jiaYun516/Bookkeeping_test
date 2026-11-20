@@ -10,22 +10,37 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+import os
 from pathlib import Path
+from dotenv import load_dotenv
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# 載入專案根目錄的 .env。
+# 檔案不存在時會靜默略過，代表設定改由系統環境變數提供
+# （例如 Docker 的 env_file、雲端伺服器的環境設定）。
+load_dotenv(BASE_DIR / ".env")
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-^@$n0y01gdnb=pb_zo9in=&9&v477_if15%qa#&lv8(zfr7+=i'
+def env_bool(name: str, default: bool = False) -> bool:
+    """把環境變數字串轉成布林值（1 / true / yes / on 視為 True）。"""
+    return os.environ.get(name, str(default)).lower() in ("1", "true", "yes", "on")
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
 
-ALLOWED_HOSTS = []
+# 預設為 False：忘了設定時，系統是「安全」而非「開著除錯」。
+DEBUG = env_bool("DJANGO_DEBUG", False)
+
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")
+if not SECRET_KEY:
+    if DEBUG:
+        # 僅供本機除錯使用的假金鑰，不具任何安全性
+        SECRET_KEY = "django-insecure-dev-only"
+    else:
+        # 正式環境沒設金鑰就直接報錯，避免用不安全的值悄悄上線
+        raise RuntimeError("未設定環境變數 DJANGO_SECRET_KEY")
+
+# 以逗號分隔的字串轉成 list，空字串會得到空 list
+ALLOWED_HOSTS = [h for h in os.environ.get("DJANGO_ALLOWED_HOSTS", "").split(",") if h]
 
 
 # Application definition
